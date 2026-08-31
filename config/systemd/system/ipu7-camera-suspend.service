@@ -1,0 +1,17 @@
+[Unit]
+Description=Release active IPU7 camera streams before sleep
+DefaultDependencies=no
+Before=systemd-suspend.service systemd-hibernate.service
+Before=systemd-hybrid-sleep.service systemd-suspend-then-hibernate.service
+StopWhenUnneeded=yes
+ConditionPathExists=/sys/bus/pci/devices/0000:00:05.0
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/libexec/ipu7-camera-suspend pre
+ExecStop=/usr/local/libexec/ipu7-camera-suspend post
+TimeoutSec=30
+
+[Install]
+WantedBy=sleep.target

@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+set -u
+
+state_dir=/run/ipu7-camera-suspend
+units=(
+	pipewire.socket
+	pipewire-pulse.socket
+	wireplumber.service
+	pipewire-pulse.service
+	pipewire.service
+)
+
+run_for_logged_in_users()
+{
+	local action=$1
+	local uid user unused machine state_file entry
+	local -a active_units
+
+	while read -r uid user unused; do
+		[[ $uid =~ ^[0-9]+$ ]] || continue
+		(( uid >= 1000 && uid != 65534 )) || continue
+
+		machine="${user}@.host"
+		state_file="$state_dir/$uid.units"
+
+		if [[ $action == pre ]]; then
+			if [[ ! -e $state_file ]]; then
+				: > "$state_file"
+				for unit in "${units[@]}"; do
+					if systemctl --user --machine="$machine" is-active --quiet "$unit"; then
+						printf '%s\n' "$unit" >> "$state_file"
+					fi
+				done
+			fi
+
+			if [[ -s $state_file ]]; then
+				echo "Stopping PipeWire for $user before IPU7 suspend."
+				systemctl --user --machine="$machine" stop "${units[@]}" || true
+			fi
+		elif [[ -s $state_file ]]; then
+			entry=$(getent passwd "$uid") || continue
+			IFS=: read -r user unused <<< "$entry"
+			machine="${user}@.host"
+			mapfile -t active_units < "$state_file"
+			echo "Restoring PipeWire for $user after IPU7 resume."
+			systemctl --user --machine="$machine" start "${active_units[@]}" || true
+		fi
+	done < <(loginctl list-users --no-legend)
+}
+
+case ${1:-} in
+	pre)
+		install -d -m0755 "$state_dir"
+		run_for_logged_in_users pre
+		;;
+	post)
+		[[ -d $state_dir ]] || exit 0
+		run_for_logged_in_users post
+		rm -f -- "$state_dir"/*.units
+		;;
+	*)
+		echo "usage: $0 {pre|post}" >&2
+		exit 2
+		;;
+esac

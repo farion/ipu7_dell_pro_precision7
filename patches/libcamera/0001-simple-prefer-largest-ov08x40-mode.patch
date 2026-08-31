@@ -1,0 +1,39 @@
+From: IPU7 Dell Pro Precision 7 contributors
+Subject: [PATCH] pipeline: simple: prefer full OV08X40 sensor mode
+
+The OV08X40's 1928x1088 binned mode fails on Panther Lake IPU7 with
+CAPTURE_HW_ERR_BAD_FRAME_DIM. Prefer the largest valid sensor mode for this
+sensor while preserving the existing smallest-sufficient-mode heuristic for
+all other sensors.
+
+---
+ src/libcamera/pipeline/simple/simple.cpp | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/libcamera/pipeline/simple/simple.cpp b/src/libcamera/pipeline/simple/simple.cpp
+--- a/src/libcamera/pipeline/simple/simple.cpp
++++ b/src/libcamera/pipeline/simple/simple.cpp
+@@ -1136,6 +1136,7 @@ CameraConfiguration::Status SimpleCameraConfiguration::validate()
+ CameraConfiguration::Status SimpleCameraConfiguration::validate()
+ {
+ 	const CameraSensor *sensor = data_->sensor_.get();
++	const bool preferLargestSensorMode = sensor->model() == "ov08x40";
+ 	Status status = Valid;
+ 
+ 	if (config_.empty())
+@@ -1227,8 +1228,12 @@ CameraConfiguration::Status SimpleCameraConfiguration::validate()
+ 		if (maxOutputSize.width >= maxProcessedStreamSize.width &&
+ 		    maxOutputSize.height >= maxProcessedStreamSize.height &&
+ 		    captureSize.width >= maxRawStreamSize.width &&
+ 		    captureSize.height >= maxRawStreamSize.height) {
++			/* The OV08X40's 1928x1088 mode reports bad frame dimensions on IPU7 PTL. */
+-			if (!pipeConfig_ || captureSize < pipeConfig_->captureSize)
++			if (!pipeConfig_ ||
++			    (preferLargestSensorMode
++				     ? pipeConfig_->captureSize < captureSize
++				     : captureSize < pipeConfig_->captureSize))
+ 				pipeConfig_ = pipeConfig;
+ 		}
+ 
+-- 
+2.51.0
