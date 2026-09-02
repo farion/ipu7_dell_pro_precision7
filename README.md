@@ -75,6 +75,44 @@ The equivalent command-line option is:
 --enable-features=WebRtcPipeWireCamera
 ```
 
+## Teams for Linux
+
+Teams for Linux is an Electron application, so enabling the browser flag does
+not enable PipeWire camera support in Teams. Fully quit it from the tray, then
+test with:
+
+```bash
+teams-for-linux --enable-features=WebRtcPipeWireCamera
+```
+
+To make this persistent, add the flag to its configuration file (preserving
+any existing settings):
+
+```json
+{
+  "electronCLIFlags": [
+    [
+      "enable-features",
+      "WebRTCPipeWireCapturer,WebRtcPipeWireCamera"
+    ]
+  ]
+}
+```
+
+For a native package, use `~/.config/teams-for-linux/config.json`. The Snap
+path is `~/snap/teams-for-linux/current/.config/teams-for-linux/config.json`,
+and the Flatpak path is
+`~/.var/app/com.github.IsmaelMartinez.teams_for_linux/config/teams-for-linux/config.json`.
+Restart Teams completely and select the OV08X40 camera in Teams settings.
+
+`./install.sh` installs this configuration for the native Teams for Linux
+package and preserves unrelated existing settings. Snap and Flatpak use
+different configuration locations and are not changed by the installer.
+
+If the camera is still absent, update Teams for Linux. An Electron build that
+does not include the PipeWire camera feature cannot use this native PipeWire
+source; this installer intentionally does not install a V4L2 loopback relay.
+
 ## Verify
 
 Run the non-destructive checks:

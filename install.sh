@@ -25,4 +25,6 @@ Installation completed. Reboot before testing the camera.
 
 Chrome/Chromium users must also enable:
   chrome://flags/#enable-webrtc-pipewire-camera
+
+Teams for Linux is configured with PipeWire camera support.
 EOF

@@ -1,0 +1,18 @@
+{
+  "electronCLIFlags": [
+    [
+      "enable-features",
+      "WebRTCPipeWireCapturer,WebRtcPipeWireCamera"
+    ]
+  ],
+  "media": {
+    "camera": {
+      "resolution": {
+        "enabled": true,
+        "mode": "override",
+        "width": 3840,
+        "height": 2160
+      }
+    }
+  }
+}

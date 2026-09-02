@@ -87,6 +87,38 @@ when Chrome was built with PipeWire camera support.
 Check `chrome://version` if launching with a command-line option. It should
 show `--enable-features=WebRtcPipeWireCamera`.
 
+## Teams for Linux does not list the camera
+
+Teams for Linux is separate from the browser and needs the Chromium feature on
+its own Electron process. Fully quit it from the tray, then launch:
+
+```bash
+teams-for-linux --enable-features=WebRtcPipeWireCamera
+```
+
+For a persistent setting, add this to its `config.json`, preserving any
+existing keys:
+
+```json
+{
+  "electronCLIFlags": [
+    [
+      "enable-features",
+      "WebRTCPipeWireCapturer,WebRtcPipeWireCamera"
+    ]
+  ]
+}
+```
+
+Use `~/.config/teams-for-linux/config.json` for a native package,
+`~/snap/teams-for-linux/current/.config/teams-for-linux/config.json` for Snap,
+or
+`~/.var/app/com.github.IsmaelMartinez.teams_for_linux/config/teams-for-linux/config.json`
+for Flatpak. If the current Teams for Linux release still does not expose the
+camera, upgrade it: an Electron version without PipeWire camera support cannot
+consume this native PipeWire source. This repository deliberately removes the
+legacy V4L2 loopback relay rather than keeping a permanent relay process.
+
 ## First frame is black
 
 The sensor and automatic exposure need several frames to settle. This is why

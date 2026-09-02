@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+for ((attempt = 0; attempt < 50; attempt++)); do
+	node_id=$(pw-dump | jq -r 'first(.[] | select(.type == "PipeWire:Interface:Node" and .info.props["node.name"] == "libcamera_input.__SB_.LNK1") | .id) // empty')
+	if [[ -n $node_id ]]; then
+		pw-cli set-param "$node_id" Props '{ contrast = 1.15, saturation = 1.18 }'
+		exit 0
+	fi
+	sleep 0.2
+done
+
+echo "OV08X40 PipeWire source did not appear" >&2
+exit 1

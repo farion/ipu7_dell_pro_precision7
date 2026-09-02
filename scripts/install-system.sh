@@ -45,6 +45,7 @@ apt-get install -y \
 	libcamera-v4l2 \
 	libcamera0.7 \
 	libspa-0.2-libcamera \
+	jq \
 	linux-firmware-intel-graphics \
 	linux-modules-vision-generic \
 	pipewire \
